@@ -1,4 +1,4 @@
-package assignment2;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,11 +10,8 @@ public class Worksheet {
 	public static Worksheet generate(WorksheetSettings settings) {
 		problems = new ArrayList<Problem>();
 		
-		int totalNumOfOps = settings.getProblemTypes().size();
-		int numOfProbsEach = settings.getNumProblems() / totalNumOfOps;
-		
-		for (int numOfOps=0; numOfOps<totalNumOfOps; numOfOps++) {
-			for (int numOfProbs=0; numOfProbs<numOfProbsEach; numOfProbs++) {
+		for (int numOfOps=0; numOfOps<sizeOfOps(settings); numOfOps++) {
+			for (int numOfProbs=0; numOfProbs<numOfProbsPerOp(settings); numOfProbs++) {
 				ProblemType problem_type = settings.getProblemTypes().get(numOfOps);
 				Problem p = Problem.create(problem_type, settings.getOperandRange());
 				 
@@ -23,6 +20,14 @@ public class Worksheet {
 		}
 
 		return new Worksheet();
+	}
+	
+	private static int sizeOfOps(WorksheetSettings settings) {
+		return settings.getProblemTypes().size();
+	}
+	
+	private static int numOfProbsPerOp(WorksheetSettings settings) {
+		return settings.getNumProblems() / sizeOfOps(settings);
 	}
 	
 	public static void addProblem(Problem problem) {

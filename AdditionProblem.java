@@ -1,5 +1,3 @@
-package assignment2;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -18,17 +16,22 @@ public class AdditionProblem extends Problem {
 		operands = new ArrayList<>(Arrays.asList(operand1, operand2));
 	}
 	
+	private double toDouble(String s) {
+		return Double.parseDouble(s);
+	}
+	
 	public boolean checkAnswer(String user_answer) {
-		double user_answer_double = Double.parseDouble(user_answer);
-		double this_answer_double = Double.parseDouble(this.getAnswer());
-		this.answeredCorrectly = (user_answer_double == this_answer_double);
+		this.answeredCorrectly = (this.toDouble(user_answer) == this.toDouble(this.getAnswer()));
 		
 		return this.answeredCorrectly;
 	}
 	
+	private double answer() {
+		return operands.get(0)+operands.get(1);
+	}
+	
 	public String getAnswer() {
-		double answer = operands.get(0)+operands.get(1);
-		return String.valueOf(answer);
+		return String.valueOf(this.answer());
 	}
 	
 	public boolean isAnsweredCorrectly() {

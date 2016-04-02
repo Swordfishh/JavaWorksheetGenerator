@@ -1,56 +1,64 @@
-package assignment2;
 
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.Scanner;
 
-public class CommandLineWPG extends WordProblemGenerator {
+public class CommandLineWPG extends WordProblemGenerator {	
 	private Profile childProfile;
 	private Worksheet worksheet;
 	private List<Template> templates;
 	
 	private Scanner reader = new Scanner(System.in);
 	
-	public void promptUserProfileInfo() {
+	private List<Person> promptForListOfPerson() {
 		List<Person> peopleList = new ArrayList<Person>();
-		List<Item> itemList = new ArrayList<Item>();
 		
-		// Enter male names
-		System.out.println("Enter a male name or (c)ontinue: ");
-		String person_input = reader.nextLine();
+		List<String> genderList = new ArrayList<String>();
+		genderList.add("male");
+		genderList.add("female");
 		
-		while (!person_input.equals("c")) {
-			Person person = new Person(person_input, "He");
-			peopleList.add(person);
-			
-			System.out.print("Names: ["+peopleList.get(0).getName());
-			for (int i=1; i<peopleList.size(); i++) {
-				System.out.print(", "+peopleList.get(i).getName());
+		String pronoun = "";
+		for (String gender : genderList) {
+			switch (gender) {
+				case "male":
+					pronoun = "He";
+					break;
+				case "female":
+					pronoun = "She";
+					break;
 			}
-			System.out.println("]");
 			
-			System.out.println("Enter a male name or (c)ontinue: ");
-			person_input = reader.nextLine();
-		}
-		
-		// Enter female names
-		System.out.println("Enter a female name or (c)ontinue: ");
-		person_input = reader.nextLine();
-		
-		while (!person_input.equals("c")) {
-			Person person = new Person(person_input, "She");
-			peopleList.add(person);
+			// Enter names
+			System.out.println("Enter a "+gender+" name or (c)ontinue: ");
+			String person_input = reader.nextLine();
 			
-			System.out.print("Names: ["+peopleList.get(0).getName());
-			for (int i=1; i<peopleList.size(); i++) {
-				System.out.print(", "+peopleList.get(i).getName());
-			}
-			System.out.println("]");
-			
-			System.out.println("Enter a female name or (c)ontinue: ");
-			person_input = reader.nextLine();
-		}
+			while (!person_input.equals("c")) {
+				Person person = new Person(person_input, pronoun);
+				peopleList.add(person);
 				
+				System.out.print("Names: ["+peopleList.get(0).getName());
+				for (int i=1; i<peopleList.size(); i++) {
+					System.out.print(", "+peopleList.get(i).getName());
+				}
+				System.out.println("]");
+				
+				System.out.println("Enter a "+gender+" name or (c)ontinue: ");
+				person_input = reader.nextLine();
+			}
+		}
+		
+		return peopleList;
+	}
+	
+	private List<Item> promptForListOfItems() {
+		List<Item> itemList = new ArrayList<Item>();
 		// Items
 		System.out.println("Enter an item or (c)ontinue: ");
 		String item_input = reader.nextLine();
@@ -68,14 +76,16 @@ public class CommandLineWPG extends WordProblemGenerator {
 			System.out.println("Enter an item or (c)ontinue: ");
 			item_input = reader.nextLine();
 		}
-		
-		childProfile = new Profile(peopleList, itemList);
+		return itemList;
 	}
 	
-	public void promptWorksheetSettings() {
+	public void promptUserProfileInfo() {
+		childProfile = new Profile(this.promptForListOfPerson(), this.promptForListOfItems());
+	}
+	
+	private List<ProblemType> promptProblemType() {
 		List<ProblemType> problemTypesList = new ArrayList<ProblemType>();
 		
-		// Problem Types
 		System.out.println("Enter problem type -- \n  (a)ddition, (s)ubtraction, (m)ultiplication, (d)ivision or (c)ontinue: ");
 		String problem_type_input = reader.nextLine();
 		
@@ -105,25 +115,33 @@ public class CommandLineWPG extends WordProblemGenerator {
 			System.out.println("Enter problem type (a)ddition, (s)ubtraction, (m)ultiplication, (d)ivision or (c)ontinue: ");
 			problem_type_input = reader.nextLine();
 		}
-		
-		// number of problems
-		System.out.println("Enter number of problems: ");
-		int numProblems = reader.nextInt();
-		
-		// operand range
-		System.out.println("Enter minimum operand range: ");
-		int minOperand =  reader.nextInt();
-		System.out.println("Enter maximum operand range: ");
-		int maxOperand =  reader.nextInt();
-		OperandRange operandrange = new OperandRange(minOperand, maxOperand);
-		
-		WorksheetSettings worksheetSettings = new WorksheetSettings(problemTypesList, numProblems, operandrange);
+		return problemTypesList;
+	}
+	
+	private int promptInt(String text) {
+		System.out.println(text);
+		return reader.nextInt();
+	}
+	
+	private int promptNumberOfProblems() {
+		return this.promptInt("Enter number of problems: ");
+	}
+	
+	private OperandRange promptOperandRange() {		
+		return new OperandRange(this.promptInt("Enter minimum operand range: "), 
+								this.promptInt("Enter maximum operand range: "));
+	}
+	
+	public void promptWorksheetSettings() {
+		WorksheetSettings worksheetSettings = new WorksheetSettings(this.promptProblemType(), 
+				this.promptNumberOfProblems(), 
+				this.promptOperandRange());
 		
 		worksheet = Worksheet.generate(worksheetSettings);
 	}
 	
 	public void displayWorksheet() {
-		String user_answer = reader.nextLine();
+		reader.nextLine();
 		
 		this.templates = new ArrayList<Template>();
 		
@@ -132,19 +150,51 @@ public class CommandLineWPG extends WordProblemGenerator {
 			Template this_template = new Template(childProfile, this_problem);			
 			this.templates.add(this_template);
 			
-			System.out.println(this_template.getComplete()+"\n");		
-			user_answer = reader.nextLine();
-			
-			if (this_problem.checkAnswer(user_answer) == true) {
+			if (this_problem.checkAnswer(this.promptNextLine(this_template.getComplete()+"\n")) == true) {
 				worksheet.incrementTotalCorrect();
 			}
 		}
 	}
+	private String promptNextLine(String text)  {
+		System.out.println(text);		
+		return reader.nextLine();
+	}
+
+	private int percentage() {
+		return (int)(worksheet.getNumCorrect() * 100) / worksheet.getNumProblems();
+	}
 	
 	public void displayScore() {
-		double percentage = (worksheet.getNumCorrect() * 100) / worksheet.getNumProblems();
-		System.out.println("Total Correct: "+worksheet.getNumCorrect()+" out of "+worksheet.getNumProblems()
-						   +" ("+(int)percentage+"%)");
+		System.out.println("Total Correct: "+worksheet.getNumCorrect()
+						   +" out of "+worksheet.getNumProblems()
+						   +" ("+this.percentage()+"%)");
+	}
+	
+	public void saveScore() {
+		String currentDate = new SimpleDateFormat("MM/dd/YYYY HH:mm:ss").format(Calendar.getInstance().getTime());
+		File f = new File(SCOREFILEPATH);
+		
+		if(!f.exists()) {
+			try {
+				PrintWriter writer = new PrintWriter(SCOREFILEPATH, "UTF-8");
+				writer.println(new Integer(this.percentage()).toString()+", "+currentDate);
+				writer.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		else {
+			BufferedWriter bw = null;
+			try {
+			    bw = new BufferedWriter(new FileWriter(SCOREFILEPATH, true));
+			    bw.write(new Integer(this.percentage()).toString()+", "+currentDate);
+			    bw.newLine();
+			    bw.flush();
+			    bw.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	public void exit() {

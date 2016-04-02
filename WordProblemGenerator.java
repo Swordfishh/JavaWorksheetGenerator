@@ -1,6 +1,7 @@
-package assignment2;
+
 
 public abstract class WordProblemGenerator {
+	public final String SCOREFILEPATH = System.getProperty("user.dir")+"/src/scores.txt";
 	
 	public abstract void promptUserProfileInfo();
 	
@@ -9,6 +10,8 @@ public abstract class WordProblemGenerator {
 	public abstract void displayWorksheet();
 	
 	public abstract void displayScore();
+
+	public abstract void saveScore();
 
 	public abstract void exit();
 
